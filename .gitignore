@@ -25,7 +25,7 @@ logs/
 *.tmp
 
 # === Spring Boot ===
-*.jar
+# *.jar
 *.war
 
 # === Jenkins workspace (로컬 빌드 테스트 시) ===
