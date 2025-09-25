@@ -1,10 +1,11 @@
 package com.fhk.security.models.account.service;
 
-import com.fhk.security.models.account.dto.joinAccount.JoinAccountReq;
+import com.fhk.security.models.account.dto.postAccount.PostAccountReq;
+import com.fhk.security.models.account.dto.postAccount.PostAccountRes;
 
 public interface AccountService {
 
-    void postAccount(JoinAccountReq request);
+    PostAccountRes postAccount(PostAccountReq request);
 
     void getAccountDetail();
 }
