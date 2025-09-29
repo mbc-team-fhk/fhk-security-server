@@ -1,7 +1,7 @@
 package com.fhk.security.models.account.domain;
 
-import com.fhk.common.enums.Role;
 import com.fhk.core.entity.BaseEntity;
+import com.fhk.security.core.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

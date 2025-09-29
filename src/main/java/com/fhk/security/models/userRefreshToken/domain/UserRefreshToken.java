@@ -64,4 +64,25 @@ public class UserRefreshToken {
 		this.replacedDate = LocalDateTime.now();
 		this.revokedBy = revokeJti;
 	}
+
+	public static UserRefreshToken createToken(
+			Account account,
+			String jti,
+			String tokenHash,
+			LocalDateTime expiresAt,
+			String deviceId,
+			String userAgent,
+			String ip
+	) {
+		UserRefreshToken token = new UserRefreshToken();
+		token.setAccount(account);
+		token.setJti(jti);
+		token.setTokenHash(tokenHash);
+		token.setCreatedDate(LocalDateTime.now());
+		token.setExpiresDate(expiresAt);
+		token.setDeviceId(deviceId);
+		token.setUserAgent(userAgent);
+		token.setIp(ip);
+		return token;
+	}
 }

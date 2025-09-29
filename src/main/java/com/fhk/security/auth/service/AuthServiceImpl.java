@@ -1,15 +1,19 @@
 package com.fhk.security.auth.service;
 
 import com.fhk.common.api.servlet.ClientInfo;
-import com.fhk.core.config.jwt.RefreshTokenHasher;
+//import com.fhk.core.config.jwt.RefreshTokenHasher;
 import com.fhk.security.auth.dto.performLogin.PerformLoginReq;
 import com.fhk.security.auth.dto.performLogin.PerformLoginRes;
 import com.fhk.security.auth.dto.refreshToken.RefreshTokenReq;
 import com.fhk.security.auth.dto.refreshToken.RefreshTokenRes;
-import com.fhk.security.auth.repository.UserRefreshTokensRepository;
-import com.fhk.security.jwt.JwtProvider;
-import com.fhk.security.jwt.TokenGuard;
+import com.fhk.security.models.userRefreshToken.repository.UserRefreshTokenRepository;
+import com.fhk.security.core.enums.Role;
+import com.fhk.security.core.interfaces.TokenGuard;
+import com.fhk.security.core.jwt.JwtIssuer;
+import com.fhk.security.core.jwt.JwtVerifier;
+import com.fhk.security.jwt.RefreshTokenHasher;
 import com.fhk.security.models.account.repository.AccountRepository;
+import com.fhk.security.models.userRefreshToken.domain.UserRefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,19 +22,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
 	private final StringRedisTemplate redisTemplate;
 
-	private final JwtProvider jwt;
+	private final JwtIssuer jwtIssuer;
 	private final PasswordEncoder passwordEncoder;
 	private final RefreshTokenHasher refreshTokenHasher;
 
 	private final AccountRepository accountRepository;
-	private final UserRefreshTokensRepository userRefreshTokensRepository;
+	private final UserRefreshTokenRepository userRefreshTokensRepository;
 	private final TokenGuard tokenGuard;
+	private final JwtVerifier jwtVerifier;
 
 	@Override
 	@Transactional
@@ -51,15 +59,26 @@ public class AuthServiceImpl implements AuthService {
 
 		// 3. 신규 토큰 생성
 		var newVer = ver + 1;
-		var accessToken = jwt.issueAccessToken(account.getId(), account.getRole(), newVer);
-		var refreshToken = jwt.issueRefreshToken(account.getId(), newVer);
+		var accessToken = jwtIssuer.issueAccessToken(account.getId(), account.getRole().toString(), newVer);
+		var refreshToken = jwtIssuer.issueRefreshToken(account.getId(), newVer);
 
-		var userRefreshToken = jwt.toRefreshTokenEntity(account, refreshToken, clientInfo, refreshTokenHasher);
+		var claims = jwtVerifier.getClaims(refreshToken);
+		String jti = claims.getId();
+		String tokenHash = refreshTokenHasher.hash(refreshToken);
+		LocalDateTime expiresAt = claims.getExpiration()
+				.toInstant()
+				.atZone(ZoneId.of("UTC"))
+				.toLocalDateTime();
+
+		UserRefreshToken newToken = UserRefreshToken.createToken(
+				account, jti, tokenHash, expiresAt,
+				clientInfo.getDeviceId(), clientInfo.getUserAgent(), clientInfo.getIp()
+		);
 
 		// refresh token 저장
-		userRefreshTokensRepository.save(userRefreshToken);
+		userRefreshTokensRepository.save(newToken);
 
-		String redisKey = "account:" + account.getId() + ":ver"; // 캐시 DB 토큰 value KEY
+		String redisKey = "fhk:security:account:" + account.getId() + ":ver"; // 캐시 DB 토큰 value KEY
 		redisTemplate.opsForValue().set(redisKey,
 				Long.toString(newVer),
 				java.time.Duration.ofMinutes(15));
@@ -74,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
 	@Transactional
 	public RefreshTokenRes refreshToken(RefreshTokenReq req, ClientInfo clientInfo) {
 		String refreshToken = req.getRefreshToken();
-		var claims = jwt.parseRefreshToken(refreshToken).getBody();
+		var claims = jwtVerifier.getClaims(refreshToken);
 
 		// refresh token 검증 ( aud, exp )
 		tokenGuard.verifyRefresh(claims);
@@ -114,29 +133,40 @@ public class AuthServiceImpl implements AuthService {
 		Long newVer = ver + 1;
 
 		// 권한은 권한만 조회,  rotate 를 위한 member 참조는 reference 로 호출한다. (select 쿼리 호출되지 않음)
-		var role = accountRepository.findRoleByAccountId(accountId);
+		Role role = accountRepository.findRoleByAccountId(accountId);
 		if (role == null)
 			throw new BadCredentialsException("unauthorized");
 
 		var memberRef = accountRepository.getReferenceById(accountId);
 
-		var newAccessToken = jwt.issueAccessToken(accountId, role, newVer);
-		var newRefreshToken = jwt.issueRefreshToken(accountId, newVer);
+		var newAccessToken = jwtIssuer.issueAccessToken(accountId, role.toString(), newVer);
+		var newRefreshToken = jwtIssuer.issueRefreshToken(accountId, newVer);
 
-		var userRefreshToken = jwt.toRefreshTokenEntity(memberRef, newRefreshToken, clientInfo, refreshTokenHasher);
+		var newClaims = jwtVerifier.getClaims(newRefreshToken);
+		String newJti = newClaims.getId();
+		String tokenHash = refreshTokenHasher.hash(refreshToken);
+		LocalDateTime expiresAt = newClaims.getExpiration()
+				.toInstant()
+				.atZone(ZoneId.of("UTC"))
+				.toLocalDateTime();
+
+		UserRefreshToken newToken = UserRefreshToken.createToken(
+				memberRef, newJti, tokenHash, expiresAt,
+				clientInfo.getDeviceId(), clientInfo.getUserAgent(), clientInfo.getIp()
+		);
+
 
 		// 신규 refresh token 저장
-		userRefreshTokensRepository.save(userRefreshToken);
+		userRefreshTokensRepository.save(newToken);
 
-		String redisKey = "account:" + accountId + ":ver"; // 캐시 DB 토큰 value KEY
+		String redisKey = "fhk:security:account:" + accountId + ":ver"; // 캐시 DB 토큰 value KEY
 		redisTemplate.opsForValue().set(redisKey,
 				Long.toString(newVer),
 				java.time.Duration.ofMinutes(15));
 
 
 		// 5. 기존 refresh token rotate
-		var newClaims = jwt.parseRefreshToken(newRefreshToken);
-		oldRefreshToken.rotate(newClaims.getBody().getId());
+		oldRefreshToken.rotate(newClaims.getId());
 
 		return RefreshTokenRes.builder()
 				.accessToken(newAccessToken)

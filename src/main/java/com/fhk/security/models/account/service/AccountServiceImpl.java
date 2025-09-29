@@ -14,30 +14,30 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-    private final AccountRepository accountRepository;
-    private final PasswordEncoder passwordEncoder;
+	private final AccountRepository accountRepository;
+	private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public PostAccountRes postAccount(PostAccountReq request) {
-        var loginId = request.getLoginId();
-        var loginPw = request.getLoginPw();
+	@Override
+	public PostAccountRes postAccount(PostAccountReq request) {
+		var loginId = request.getLoginId();
+		var loginPw = request.getLoginPw();
 
-        if (accountRepository.existsByLoginId(loginId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "exist id");
-        }
+		if (accountRepository.existsByLoginId(loginId)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "exist id");
+		}
 
-        var newAccount = new Account();
-        newAccount.setLoginId(loginId);
-        newAccount.setPassword(passwordEncoder.encode(loginPw));
-        var created = accountRepository.save(newAccount);
-        return PostAccountRes.builder()
-                .accountId(created.getId())
-                .loginId(loginId)
-                .build();
-    }
+		var newAccount = new Account();
+		newAccount.setLoginId(loginId);
+		newAccount.setPassword(passwordEncoder.encode(loginPw));
+		var created = accountRepository.save(newAccount);
+		return PostAccountRes.builder()
+				.accountId(created.getId())
+				.loginId(loginId)
+				.build();
+	}
 
-    @Override
-    public void getAccountDetail() {
+	@Override
+	public void getAccountDetail() {
 
-    }
+	}
 }

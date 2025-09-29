@@ -1,0 +1,43 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  application:
+    name: fhk-security-server
+  datasource:
+    password: ${DB_PW}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${DB_USER}
+    url: ${DB_URL}
+  jpa:
+    properties:
+      hibernate:
+        default_batch_fetch_size: '1000'
+        format_sql: 'true'
+        show_sql: 'true'
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MariaDBDialect
+  data:
+    redis:
+      password: ${REDIS_PW}
+      port: '16379'
+      host: 192.168.0.184
+
+jwt:
+  issuer: # 발급 서버에서 사용
+    private-key-path: classpath:keys/jwt-private.pem
+    access-expire-ms: 900000       # 15분
+    refresh-expire-ms: 1209600000   # 14일
+
+  verifier: # JWT 인증시 사용
+    public-key-path: classpath:keys/jwt-public.pem
+
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+

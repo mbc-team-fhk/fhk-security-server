@@ -9,5 +9,6 @@ import com.fhk.security.auth.dto.refreshToken.RefreshTokenRes;
 public interface AuthService {
 
 	PerformLoginRes performLogin(PerformLoginReq req, ClientInfo clientInfo);
+
 	RefreshTokenRes refreshToken(RefreshTokenReq req, ClientInfo clientInfo);
 }

@@ -1,6 +1,6 @@
 package com.fhk.security.models.account.repository;
 
-import com.fhk.common.enums.Role;
+import com.fhk.security.core.enums.Role;
 import com.fhk.security.models.account.domain.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
