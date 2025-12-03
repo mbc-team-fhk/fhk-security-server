@@ -25,7 +25,7 @@ spec:
       containers:
         - name: fhk-security-server
           image: juno6800/fhk-security-server:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
