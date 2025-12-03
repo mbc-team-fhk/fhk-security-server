@@ -1,0 +1,71 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.fhk'
+version = '0.0.1-SNAPSHOT'
+description = 'fhk-security-server'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+bootJar { archiveFileName = 'fhk-security-server.jar' }
+
+dependencies {
+    // 모듈 import ( Maven Repo 리서치 스킵으로 단순하게 jar import 로 감)
+    // 동일 버전 모듈 덮어쓰기 하는경우 -> 수정사항 자동반영 안됨 (컴파일에러)
+    // 1. 아래 해당하는 모듈 삭제후 gradle sync
+    // 2. 아래 덮어쓰기한 모듈 다시 추가 후 gradle sync
+    implementation files("libs/fhk-common-1.0.0-plain.jar")
+    implementation files("libs/fhk-core-1.0.0-plain.jar")
+    implementation files("libs/fhk-security-core-1.0.0-plain.jar")
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // health check 상태/메트릭 제공 (k3s 에서 pod Ready 판단)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'  // 테스트용 추가
+    testAnnotationProcessor 'org.projectlombok:lombok'   // 테스트용 추가
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // 스프링 시큐리티
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // jwt 토큰
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-api:0.11.5'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+}
+
+test {
+    useJUnitPlatform()
+}

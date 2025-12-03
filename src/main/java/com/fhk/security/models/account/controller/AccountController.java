@@ -1,0 +1,40 @@
+package com.fhk.security.models.account.controller;
+
+import com.fhk.common.api.ApiResponse;
+import com.fhk.security.core.record.FhkUserPrincipal;
+import com.fhk.security.models.account.dto.postAccount.PostAccountReq;
+import com.fhk.security.models.account.service.AccountService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/accounts")
+@RequiredArgsConstructor
+@Log4j2
+public class AccountController {
+
+	private final AccountService accountService;
+
+	// Create
+	@PostMapping
+	public ResponseEntity<?> postAccount(@RequestBody PostAccountReq request) {
+
+		return ApiResponse.created(accountService.postAccount(request));
+	}
+
+	// Read One
+	@GetMapping("/{accountId}")
+	public ResponseEntity<?> getAccountDetail(
+			@AuthenticationPrincipal FhkUserPrincipal principal) {
+		log.info(principal.toString());
+
+		accountService.getAccountDetail();
+		return ApiResponse.ok(principal);
+	}
+}

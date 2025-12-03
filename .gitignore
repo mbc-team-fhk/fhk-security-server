@@ -26,7 +26,12 @@ logs/
 
 # === Spring Boot ===
 *.jar
+
+# libs 폴더 아래 jar는 추적 허용 ( 모듈 임포트용 )
+!libs/*.jar
+
 *.war
+
 
 # === Jenkins workspace (로컬 빌드 테스트 시) ===
 **/workspace/
