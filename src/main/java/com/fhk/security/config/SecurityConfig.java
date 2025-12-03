@@ -57,10 +57,11 @@ public class SecurityConfig {
 								}
 							});
 
-							// 이 외 모든 endpoint 에 인증 수행
+							// 추가 화이트리스트 이 외 모든 endpoint 에 인증 수행
 							auth
 									.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-									.requestMatchers("/api/auth/v1/**").permitAll()
+									.requestMatchers("/actuator/health").permitAll()
+									.requestMatchers("/api/auth/**").permitAll()
 									.requestMatchers(HttpMethod.POST, "/api/accounts").permitAll()
 									.anyRequest().authenticated();
 						}
