@@ -24,6 +24,8 @@ repositories {
     mavenCentral()
 }
 
+bootJar { archiveFileName = 'fhk-security-server.jar' }
+
 dependencies {
     // 모듈 import ( Maven Repo 리서치 스킵으로 단순하게 jar import 로 감)
     // 동일 버전 모듈 덮어쓰기 하는경우 -> 수정사항 자동반영 안됨 (컴파일에러)
@@ -35,6 +37,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // health check 상태/메트릭 제공 (k3s 에서 pod Ready 판단)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

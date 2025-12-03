@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}  # 컨테이너 내부 기본 8080.  필요시 env 넣어서 개발시 활용
 
 spring:
   application:
@@ -8,7 +8,7 @@ spring:
     password: ${DB_PW}
     driver-class-name: org.mariadb.jdbc.Driver
     username: ${DB_USER}
-    url: ${DB_URL}
+    url: ${DB_URL:jdbc:mariadb://192.168.45.210:3306/fhk_secu_db}
   jpa:
     properties:
       hibernate:
@@ -20,9 +20,9 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
   data:
     redis:
+      host: ${REDIS_HOST:192.168.45.211}  # 사설 IP 고정
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PW}
-      port: '16379'
-      host: 192.168.0.184
 
 jwt:
   issuer: # 발급 서버에서 사용
@@ -32,7 +32,16 @@ jwt:
 
   verifier: # JWT 인증시 사용
     public-key-path: classpath:keys/jwt-public.pem
-
+    
+management: # actuator pod 헬스체크
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      
 logging:
   level:
     org:
