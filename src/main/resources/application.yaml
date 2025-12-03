@@ -37,7 +37,7 @@ management: # actuator pod 헬스체크
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
   endpoint:
     health:
       show-details: never

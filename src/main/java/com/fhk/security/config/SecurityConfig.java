@@ -60,7 +60,8 @@ public class SecurityConfig {
 							// 추가 화이트리스트 이 외 모든 endpoint 에 인증 수행
 							auth
 									.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-									.requestMatchers("/actuator/health").permitAll()
+									// 헬스체크 / 액추에이터 전체 허용
+									.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
 									.requestMatchers("/api/auth/**").permitAll()
 									.requestMatchers(HttpMethod.POST, "/api/accounts").permitAll()
 									.anyRequest().authenticated();
