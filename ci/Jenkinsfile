@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        JAVA17_HOME = '/usr/lib/jvm/java-17-openjdk-amd64' // jenkins 21.0.9 라서 jdk17 버전 명시필요
         APP_NAME        = 'fhk-security-server'
         REGISTRY        = 'juno6800'
         IMAGE           = "${REGISTRY}/${APP_NAME}"
@@ -29,8 +30,8 @@ pipeline {
 
         stage('Gradle build (bootJar)') {
             steps {
-                sh 'chmod +x gradlew'      // <= 이 줄 추가
-                sh './gradlew clean bootJar -x test'
+                sh 'chmod +x gradlew'      // jenkins에서 gradlew 권한 매번 요구해서 그냥 넣음
+                sh "export JAVA_HOME=${env.JAVA17_HOME} && export PATH=${env.JAVA17_HOME}/bin:\$PATH && ./gradlew clean bootJar -x test"
             }
         }
 
