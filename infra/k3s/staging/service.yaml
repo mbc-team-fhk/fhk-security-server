@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fhk-security-server
+  namespace: staging
+  labels:
+    app: fhk-security-server
+    env: staging
+spec:
+  type: ClusterIP
+  selector:
+    app: fhk-security-server
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
