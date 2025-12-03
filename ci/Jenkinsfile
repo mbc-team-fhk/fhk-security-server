@@ -29,9 +29,8 @@ pipeline {
 
         stage('Gradle build (bootJar)') {
             steps {
-                sh '''
-                  ./gradlew clean bootJar -x test
-                '''
+                sh 'chmod +x gradlew'      // <= 이 줄 추가
+                sh './gradlew clean bootJar -x test'
             }
         }
 
