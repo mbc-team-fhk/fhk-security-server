@@ -14,7 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping("/accounts")
 @RequiredArgsConstructor
 @Log4j2
 public class AccountController {

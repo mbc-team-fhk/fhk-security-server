@@ -8,10 +8,6 @@ ARG JAR_FILE=build/libs/fhk-security-server.jar
 
 COPY ${JAR_FILE} /app/app.jar
 
-# 기본값은 prod, 실제 프로필은 k8s Deployment env 에서 덮어씀
-ENV SPRING_PROFILES_ACTIVE=prod \
-    SERVER_PORT=8080
-
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
