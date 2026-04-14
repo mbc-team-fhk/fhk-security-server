@@ -47,19 +47,6 @@ public class AccountController {
 		return ApiResponse.ok(accountService.isAvailability(loginId));
 	}
 
-	/**
-	 * 토큰으로 본인 계정정보 조회
-	 * /accounts/me
-	 *
-	 * @param principal
-	 * @return
-	 * id, loginId, nickname, role
-	 */
-	@GetMapping("/me")
-	public ResponseEntity<?> getMe(@AuthenticationPrincipal FhkUserPrincipal principal) {
-
-		return ApiResponse.ok(accountService.getMe(principal.id()));
-	}
 
 	/**
 	 * 로그인 ID로 계정정보 조회
