@@ -13,6 +13,10 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
 	Optional<Account> findByLoginId(String loginId);
 
+	Optional<Account> findByNickname(String nickname);
+
+
+
 	/**
 	 * 토큰 버전 조회
 	 *
