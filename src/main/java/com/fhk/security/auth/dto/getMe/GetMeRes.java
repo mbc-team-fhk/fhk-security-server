@@ -1,4 +1,4 @@
-package com.fhk.security.models.account.dto.getMe;
+package com.fhk.security.auth.dto.getMe;
 
 import lombok.Builder;
 import lombok.Data;

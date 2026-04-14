@@ -5,19 +5,20 @@ import com.fhk.common.api.servlet.ClientInfo;
 import com.fhk.security.auth.dto.performLogin.PerformLoginReq;
 import com.fhk.security.auth.dto.refreshToken.RefreshTokenReq;
 import com.fhk.security.auth.service.AuthService;
+import com.fhk.security.core.record.FhkUserPrincipal;
+import com.fhk.security.models.account.service.AccountService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping({"/auth"})
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
+	private final AccountService accountService;
 
 	@PostMapping("/login")
 	public ResponseEntity<?> performLogin(@RequestBody PerformLoginReq request,
@@ -38,5 +39,19 @@ public class AuthController {
 		var res = authService.refreshToken(request, clientInfo);
 
 		return ApiResponse.ok(res);
+	}
+
+	/**
+	 * 토큰으로 본인 계정정보 조회
+	 * /auth/me
+	 *
+	 * @param principal
+	 * @return
+	 * id, loginId, nickname, role
+	 */
+	@GetMapping("/me")
+	public ResponseEntity<?> getMe(@AuthenticationPrincipal FhkUserPrincipal principal) {
+
+		return ApiResponse.ok(accountService.getMe(principal.id()));
 	}
 }
