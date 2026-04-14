@@ -8,4 +8,5 @@ import lombok.Data;
 public class PostAccountRes {
 	private Long accountId;
 	private String loginId;
+	private String nickname;
 }

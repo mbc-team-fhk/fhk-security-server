@@ -6,4 +6,5 @@ import lombok.Getter;
 public class PostAccountReq {
     private String loginId;
     private String loginPw;
+    private String nickName;
 }

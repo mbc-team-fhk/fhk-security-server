@@ -63,7 +63,7 @@ public class SecurityConfig {
 									// 헬스체크 / 액추에이터 전체 허용
 									.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
 									.requestMatchers("/auth/**").permitAll()
-									.requestMatchers(HttpMethod.POST, "/accounts").permitAll()
+									.requestMatchers("/accounts/**").permitAll()
 									.anyRequest().authenticated();
 						}
 				)
