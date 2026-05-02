@@ -1,6 +1,6 @@
 package com.fhk.security.jwt.service;
 
-import com.fhk.security.core.interfaces.TokenGuard;
+import com.fhk.security.core.jwt.service.TokenGuard;
 import com.fhk.security.models.account.repository.AccountRepository;
 import io.jsonwebtoken.Claims;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.Date;
 
 @Component
@@ -20,7 +19,8 @@ public class TokenGuardImpl implements TokenGuard {
 	private final AccountRepository accountRepository;
 
 	/**
-	 * 토큰 버전 검증
+	 * 토큰 버전 검증 override
+	 * redisValue 없으면 DB 조회 및 redis.set
 	 *
 	 * @param uid accountId
 	 * @param tokenVersion
@@ -46,7 +46,7 @@ public class TokenGuardImpl implements TokenGuard {
 		Integer tokenVersion = claims.get("version", Integer.class);
 
 		// aud 검증
-		if (!"access".equals(claims.getAudience())) {
+		if (!claims.getAudience().contains("access")) {
 			throw new BadCredentialsException("not access token");
 		}
 
@@ -64,7 +64,7 @@ public class TokenGuardImpl implements TokenGuard {
 		Integer tokenVersion = claims.get("version", Integer.class);
 
 		// aud == refresh 검증
-		if (!"refresh".equals(claims.getAudience())) {
+		if (!claims.getAudience().contains("refresh")) {
 			throw new BadCredentialsException("not refresh token");
 		}
 

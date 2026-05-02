@@ -13,24 +13,27 @@ import com.fhk.security.models.account.dto.withdraw.WithdrawRes;
 import com.fhk.security.models.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AccountServiceImpl implements AccountService {
 
 	private final AccountRepository accountRepository;
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
+	@Transactional
 	public PostAccountRes postAccount(PostAccountReq request) {
 		var loginId = request.getLoginId();
 		var loginPw = request.getLoginPw();
+		var nickname = request.getNickname();
 
 		if (accountRepository.existsByLoginId(loginId)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "exist id");
@@ -39,10 +42,12 @@ public class AccountServiceImpl implements AccountService {
 		var newAccount = new Account();
 		newAccount.setLoginId(loginId);
 		newAccount.setPassword(passwordEncoder.encode(loginPw));
+		newAccount.setNickname(nickname);
 		var created = accountRepository.save(newAccount);
 		return PostAccountRes.builder()
 				.accountId(created.getId())
 				.loginId(loginId)
+				.nickname(nickname)
 				.build();
 	}
 
@@ -83,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public AvailabilityRes isAvailability(String loginId) {
+	public AvailabilityRes isAvailabilityByLoginId(String loginId) {
 		boolean available = !accountRepository.existsByLoginId(loginId);
 
         return AvailabilityRes.builder()
@@ -92,22 +97,27 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
+	public AvailabilityRes isAvailabilityByNickname(String nickname) {
+		boolean available = !accountRepository.existsByNickname(nickname);
+
+		return AvailabilityRes.builder()
+				.available(available)
+				.build();
+	}
+
+	@Override
+	@Transactional
 	public ModifyAccountRes modifyAccount(Long id, ModifyAccountReq body) {
 		var account = accountRepository.findById(id).orElseThrow(NoSuchElementException::new);
 
-		// 1. 비밀번호 검증
-		if (!passwordEncoder.matches(body.getPassword(), account.getPassword()))
-			throw new BadCredentialsException("invalid credentials");
-
-		// 2. 정보 수정
+		// 1. 정보 수정
 		if (body.getNickname() != null)
 			account.setNickname(body.getNickname());
-
 		if (body.getPassword() != null && !body.getPassword().isBlank()) {
 			account.setPassword(passwordEncoder.encode(body.getPassword()));
 		}
 
-		// TODO 3. 로그아웃 처리? -> 리프래시 토큰 폐기 처리?
+		// TODO 2. 로그아웃 처리? -> 리프래시 토큰 폐기 처리?
 
 		return ModifyAccountRes.builder()
 				.id(account.getId())
@@ -116,6 +126,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
+	@Transactional
 	public WithdrawRes withdrawAccount(Long id) {
 		var account = accountRepository.findById(id).orElseThrow(NoSuchElementException::new);
 

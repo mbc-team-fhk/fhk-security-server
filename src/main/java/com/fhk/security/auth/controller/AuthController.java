@@ -8,6 +8,7 @@ import com.fhk.security.auth.service.AuthService;
 import com.fhk.security.core.record.FhkUserPrincipal;
 import com.fhk.security.models.account.service.AccountService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,8 +21,14 @@ public class AuthController {
 	private final AuthService authService;
 	private final AccountService accountService;
 
+	/**
+	 * 로그인
+	 * @param request
+	 * @param httpRequest
+	 * @return
+	 */
 	@PostMapping("/login")
-	public ResponseEntity<?> performLogin(@RequestBody PerformLoginReq request,
+	public ResponseEntity<?> performLogin(@Valid @RequestBody PerformLoginReq request,
 	                                      HttpServletRequest httpRequest) {
 
 		var clientInfo = new ClientInfo(httpRequest);
@@ -30,8 +37,14 @@ public class AuthController {
 		return ApiResponse.ok(res);
 	}
 
+	/**
+	 * 토큰 재발급
+	 * @param request
+	 * @param httpRequest
+	 * @return
+	 */
 	@PostMapping("/refresh")
-	public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenReq request,
+	public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenReq request,
 	                                      HttpServletRequest httpRequest) {
 
 		// RTR (Refresh Token Rotation)
@@ -53,5 +66,42 @@ public class AuthController {
 	public ResponseEntity<?> getMe(@AuthenticationPrincipal FhkUserPrincipal principal) {
 
 		return ApiResponse.ok(accountService.getMe(principal.id()));
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(@AuthenticationPrincipal FhkUserPrincipal principal) {
+		
+		// TODO 로그아웃 후속조치
+		// refresh 토큰 폐기
+		// redis db 정리
+		return ApiResponse.ok(null);
+	}
+
+
+
+	/**
+	 * Kakao 로그인
+	 * @param request
+	 * @param httpRequest
+	 * @return
+	 */
+	@PostMapping("/oauth/kakao/login")
+	public ResponseEntity<?> performLoginWithKakao(@Valid @RequestBody PerformLoginReq request,
+										  HttpServletRequest httpRequest) {
+
+		return ApiResponse.ok(null);
+	}
+
+	/**
+	 * Google 로그인
+	 * @param request
+	 * @param httpRequest
+	 * @return
+	 */
+	@PostMapping("/oauth/google/login")
+	public ResponseEntity<?> performLoginWithGoogle(@Valid @RequestBody PerformLoginReq request,
+												   HttpServletRequest httpRequest) {
+
+		return ApiResponse.ok(null);
 	}
 }

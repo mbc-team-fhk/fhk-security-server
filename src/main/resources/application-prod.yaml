@@ -1,0 +1,27 @@
+server:
+  port: ${SERVER_PORT:8080}  # dev 9000, 배포에서는 SERVER_PORT=8080 주입
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL:jdbc:mariadb://192.168.45.210:3306/fhk_secu_db}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+        id:
+          sequence:
+            increment_size: ${SQL_INCREMENT_SIZE:50}
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace

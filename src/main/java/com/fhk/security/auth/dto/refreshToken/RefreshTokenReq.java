@@ -1,8 +1,11 @@
 package com.fhk.security.auth.dto.refreshToken;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 
-@Data
+@Getter
 public class RefreshTokenReq {
+	@NotNull
 	private String refreshToken;
 }
