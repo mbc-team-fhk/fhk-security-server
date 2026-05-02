@@ -9,20 +9,19 @@ import com.fhk.security.models.account.dto.modifyAccount.ModifyAccountRes;
 import com.fhk.security.models.account.dto.postAccount.PostAccountReq;
 import com.fhk.security.models.account.dto.postAccount.PostAccountRes;
 import com.fhk.security.models.account.dto.withdraw.WithdrawRes;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface AccountService {
 
     PostAccountRes postAccount(PostAccountReq request);
-
     GetMeRes getMe(Long id);
+    ModifyAccountRes modifyAccount(Long id, ModifyAccountReq body);
+    WithdrawRes withdrawAccount(Long id);
 
     GetAccountByLoginIdRes getAccountByLoginId(String loginId);
-
     GetAccountByNicknameRes getAccountByNickname(String nickname);
 
-    AvailabilityRes isAvailability(String loginId);
+    AvailabilityRes isAvailabilityByLoginId(String loginId);
+    AvailabilityRes isAvailabilityByNickname(String nickname);
 
-    ModifyAccountRes modifyAccount(Long id, ModifyAccountReq body);
-
-    WithdrawRes withdrawAccount(Long id);
 }

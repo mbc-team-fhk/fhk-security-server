@@ -8,10 +8,10 @@ import com.fhk.security.auth.dto.refreshToken.RefreshTokenReq;
 import com.fhk.security.auth.dto.refreshToken.RefreshTokenRes;
 import com.fhk.security.models.userRefreshToken.repository.UserRefreshTokenRepository;
 import com.fhk.security.core.enums.Role;
-import com.fhk.security.core.interfaces.TokenGuard;
+import com.fhk.security.core.jwt.service.TokenGuard;
 import com.fhk.security.core.jwt.JwtIssuer;
 import com.fhk.security.core.jwt.JwtVerifier;
-import com.fhk.security.jwt.RefreshTokenHasher;
+import com.fhk.security.core.jwt.utils.RefreshTokenHasher;
 import com.fhk.security.models.account.repository.AccountRepository;
 import com.fhk.security.models.userRefreshToken.domain.UserRefreshToken;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,7 @@ import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
 
 	private final StringRedisTemplate redisTemplate;
@@ -50,6 +51,8 @@ public class AuthServiceImpl implements AuthService {
 		// 1. 비밀번호 검증
 		if (!passwordEncoder.matches(req.getLoginPw(), account.getPassword()))
 			throw new BadCredentialsException("invalid credentials");
+
+		// TODO : 회원탈퇴 상태인 회원 로그인 반려처리
 
 		// 2. token 버전 ++ (잠금)
 		var ver = account.getTokenVersion();
@@ -144,7 +147,7 @@ public class AuthServiceImpl implements AuthService {
 
 		var newClaims = jwtVerifier.getClaims(newRefreshToken);
 		String newJti = newClaims.getId();
-		String tokenHash = refreshTokenHasher.hash(refreshToken);
+		String tokenHash = refreshTokenHasher.hash(newRefreshToken);
 		LocalDateTime expiresAt = newClaims.getExpiration()
 				.toInstant()
 				.atZone(ZoneId.of("UTC"))
