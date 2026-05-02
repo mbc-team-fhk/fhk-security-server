@@ -47,4 +47,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 	Role findRoleByAccountId(@Param("id") Long id);
 
 	boolean existsByLoginId(String loginId);
+
+	boolean existsByNickname(String nickname);
 }
