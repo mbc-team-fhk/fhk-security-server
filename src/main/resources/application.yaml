@@ -1,38 +1,61 @@
 server:
-  port: ${SERVER_PORT:8080}  # 컨테이너 내부 기본 8080.  필요시 env 넣어서 개발시 활용
+  port: ${SERVER_PORT:9000}  # dev 9000, 배포에서는 SERVER_PORT=8080 주입
 
 spring:
   application:
     name: fhk-security-server
+
   datasource:
-    password: ${DB_PW}
     driver-class-name: org.mariadb.jdbc.Driver
-    username: ${DB_USER}
     url: ${DB_URL:jdbc:mariadb://192.168.45.210:3306/fhk_secu_db}
+    username: ${DB_USER}
+    password: ${DB_PW}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+
   jpa:
-    properties:
-      hibernate:
-        default_batch_fetch_size: '1000'
-        format_sql: 'true'
-        show_sql: 'true'
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MariaDBDialect
+    properties:
+      hibernate:
+        default_batch_fetch_size: 1000
+        format_sql: true
+        show_sql: true
+
   data:
     redis:
       host: ${REDIS_HOST:192.168.45.211}  # 사설 IP 고정
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PW}
 
-jwt:
-  issuer: # 발급 서버에서 사용
-    private-key-path: classpath:keys/jwt-private.pem
-    access-expire-ms: 900000       # 15분
-    refresh-expire-ms: 1209600000   # 14일
+fhk:
+  security:
+    whitelist:
+      - OPTIONS:/**
+      - /actuator/health
+      - /actuator/health/**
+      - /actuator/info
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /v3/api-docs/**
+      - POST:/auth/login
+      - POST:/auth/refresh
+      - POST:/accounts
+      - GET:/accounts/availability
 
-  verifier: # JWT 인증시 사용
-    public-key-path: classpath:keys/jwt-public.pem
-    
+  jwt:
+    issuer: # 발급 서버에서 사용
+      private-key-path: classpath:keys/jwt-private.pem
+      access-expire-ms: 900000       # 15분
+      refresh-expire-ms: 1209600000   # 14일
+
+    verifier: # JWT 인증시 사용
+      public-key-path: classpath:keys/jwt-public.pem
+
+
 management: # actuator pod 헬스체크
   endpoints:
     web:
@@ -44,9 +67,6 @@ management: # actuator pod 헬스체크
       
 logging:
   level:
-    org:
-      hibernate:
-        type:
-          descriptor:
-            sql: trace
-
+    com.fhk: DEBUG
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace

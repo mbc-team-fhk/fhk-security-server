@@ -27,9 +27,12 @@ public class Account extends BaseEntity {
             unique = true)
     private String loginId;
 
-    @Column(name = "login_pw",
-            unique = true)
+    @Column(name = "login_pw")
     private String password;
+
+    @Column(name = "account_nickname",
+            unique = true)
+    private String nickname;
 
     @Column(name = "account_role")
     @Enumerated(EnumType.STRING)

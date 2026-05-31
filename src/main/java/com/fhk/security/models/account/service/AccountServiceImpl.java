@@ -1,26 +1,39 @@
 package com.fhk.security.models.account.service;
 
 import com.fhk.security.models.account.domain.Account;
+import com.fhk.security.models.account.dto.getAccount.GetAccountByLoginIdRes;
+import com.fhk.security.models.account.dto.getAccountByNickname.GetAccountByNicknameRes;
+import com.fhk.security.models.account.dto.isAvailability.AvailabilityRes;
+import com.fhk.security.auth.dto.getMe.GetMeRes;
+import com.fhk.security.models.account.dto.modifyAccount.ModifyAccountReq;
+import com.fhk.security.models.account.dto.modifyAccount.ModifyAccountRes;
 import com.fhk.security.models.account.dto.postAccount.PostAccountReq;
 import com.fhk.security.models.account.dto.postAccount.PostAccountRes;
+import com.fhk.security.models.account.dto.withdraw.WithdrawRes;
 import com.fhk.security.models.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AccountServiceImpl implements AccountService {
 
 	private final AccountRepository accountRepository;
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
+	@Transactional
 	public PostAccountRes postAccount(PostAccountReq request) {
 		var loginId = request.getLoginId();
 		var loginPw = request.getLoginPw();
+		var nickname = request.getNickname();
 
 		if (accountRepository.existsByLoginId(loginId)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "exist id");
@@ -29,15 +42,100 @@ public class AccountServiceImpl implements AccountService {
 		var newAccount = new Account();
 		newAccount.setLoginId(loginId);
 		newAccount.setPassword(passwordEncoder.encode(loginPw));
+		newAccount.setNickname(nickname);
 		var created = accountRepository.save(newAccount);
 		return PostAccountRes.builder()
 				.accountId(created.getId())
 				.loginId(loginId)
+				.nickname(nickname)
 				.build();
 	}
 
 	@Override
-	public void getAccountDetail() {
+	public GetMeRes getMe(Long accountId) {
+		var account = accountRepository.findById(accountId).orElseThrow(NoSuchElementException::new);
 
+		return GetMeRes.builder()
+				.accountId(account.getId())
+				.loginId(account.getLoginId())
+				.nickname(account.getNickname())
+				.role(account.getRole().toString())
+				.build();
+	}
+
+	@Override
+	public GetAccountByLoginIdRes getAccountByLoginId(String loginId) {
+		var account = accountRepository.findByLoginId(loginId).orElseThrow(NoSuchElementException::new);
+
+		return GetAccountByLoginIdRes.builder()
+				.accountId(account.getId())
+				.loginId(account.getLoginId())
+				.nickname(account.getNickname())
+				.role(account.getRole().toString())
+				.build();
+	}
+
+	@Override
+	public GetAccountByNicknameRes getAccountByNickname(String nickname) {
+		var account = accountRepository.findByNickname(nickname).orElseThrow(NoSuchElementException::new);
+
+		return GetAccountByNicknameRes.builder()
+				.accountId(account.getId())
+				.loginId(account.getLoginId())
+				.nickname(account.getNickname())
+				.role(account.getRole().toString())
+				.build();
+	}
+
+	@Override
+	public AvailabilityRes isAvailabilityByLoginId(String loginId) {
+		boolean available = !accountRepository.existsByLoginId(loginId);
+
+        return AvailabilityRes.builder()
+				.available(available)
+				.build();
+	}
+
+	@Override
+	public AvailabilityRes isAvailabilityByNickname(String nickname) {
+		boolean available = !accountRepository.existsByNickname(nickname);
+
+		return AvailabilityRes.builder()
+				.available(available)
+				.build();
+	}
+
+	@Override
+	@Transactional
+	public ModifyAccountRes modifyAccount(Long id, ModifyAccountReq body) {
+		var account = accountRepository.findById(id).orElseThrow(NoSuchElementException::new);
+
+		// 1. 정보 수정
+		if (body.getNickname() != null)
+			account.setNickname(body.getNickname());
+		if (body.getPassword() != null && !body.getPassword().isBlank()) {
+			account.setPassword(passwordEncoder.encode(body.getPassword()));
+		}
+
+		// TODO 2. 로그아웃 처리? -> 리프래시 토큰 폐기 처리?
+
+		return ModifyAccountRes.builder()
+				.id(account.getId())
+				.nickname(account.getNickname())
+				.build();
+	}
+
+	@Override
+	@Transactional
+	public WithdrawRes withdrawAccount(Long id) {
+		var account = accountRepository.findById(id).orElseThrow(NoSuchElementException::new);
+
+		account.setDeletedYn("Y");
+
+		return WithdrawRes.builder()
+				.id(account.getId())
+				.nickname(account.getNickname())
+				.withdrawDate(account.getUpdateTime())
+				.build();
 	}
 }
